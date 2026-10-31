@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ordini Laboratorio</title>
+<meta name="theme-color" content="#b8325a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ordini">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icona.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icona-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="stile.css">
+</head>
+<body>
+<div class="login" id="loginBox" hidden>
+  <form id="loginForm" novalidate>
+    <h1>Ordini del laboratorio</h1>
+    <p id="loginIntro">Entra con la tua email e la tua password.</p>
+    <div class="field"><label for="l-email">Email</label><input id="l-email" type="email" inputmode="email" autocomplete="username"></div>
+    <div class="field"><label for="l-pass">Password</label><input id="l-pass" type="password" autocomplete="current-password"></div>
+    <div class="err" id="loginErr" hidden></div>
+    <div class="ok-msg" id="loginOk" hidden></div>
+    <button type="submit" class="btn primary" id="loginBtn">Entra</button>
+    <button type="button" class="linkbtn" id="signupBtn">Prima volta? Crea il mio accesso</button>
+    <button type="button" class="linkbtn" id="forgotBtn">Ho dimenticato la password</button>
+  </form>
+</div>
+
+<div class="login" id="resetBox" hidden>
+  <form id="resetForm" novalidate>
+    <h1>Nuova password</h1>
+    <div class="field"><label for="r-pass">Scegli una nuova password (almeno 8 caratteri)</label><input id="r-pass" type="password" autocomplete="new-password"></div>
+    <div class="err" id="resetErr" hidden></div>
+    <button type="submit" class="btn primary">Salva password</button>
+  </form>
+</div>
+
+<div class="login" id="msgBox" hidden>
+  <form onsubmit="return false">
+    <h1 id="msgTitle"></h1>
+    <p id="msgText"></p>
+    <button type="button" class="btn" id="msgBtn" hidden></button>
+  </form>
+</div>
+
+<div id="appBox" hidden>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <h1 id="shopTitle">Ordini del laboratorio</h1>
+      <div class="brand-r">
+        <span class="sync" id="sync"><b></b>Collegamento…</span>
+        <button class="pillbtn" id="printBtn">Stampa</button>
+        <button class="iconbtn" id="setBtn" aria-label="Impostazioni">⚙</button>
+      </div>
+    </div>
+    <div class="seg" role="group" aria-label="Vista">
+      <button id="v-lista" aria-pressed="true">Lista</button>
+      <button id="v-cal" aria-pressed="false">Calendario</button>
+      <button id="v-cli" aria-pressed="false">Clienti</button>
+      <button id="v-arc" aria-pressed="false">Archivio</button>
+    </div>
+    <div class="chips" id="depChips" role="group" aria-label="Reparto"></div>
+    <div class="days" id="dayBar" role="group" aria-label="Giorno di consegna">
+      <button class="chip" id="d-oggi">Oggi</button>
+      <button class="chip" id="d-domani">Domani</button>
+      <button class="chip" id="d-tutti">Prossimi giorni</button>
+      <input type="date" id="dayPick" aria-label="Scegli un giorno">
+      <label class="toggle"><input type="checkbox" id="showDone"> Mostra consegnati</label>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap" id="list"></div>
+</main>
+
+<button class="fab" id="newBtn">+ Nuovo ordine</button>
+
+<!-- modulo ordine -->
+<div class="sheet-bg" id="formBg" hidden>
+  <form class="sheet" id="form" novalidate>
+    <h2 id="formTitle">Nuovo ordine</h2>
+    <div class="seg full" role="group" aria-label="Tipo" hidden>
+      <button type="button" id="t-ordine" aria-pressed="true">Ordine confermato</button>
+      <button type="button" id="t-preventivo" aria-pressed="false">Preventivo</button>
+    </div>
+    <div class="field"><label for="f-operatore">Operatore che inserisce</label><select id="f-operatore"></select><span class="hint" id="opHint"></span></div>
+
+    <h3>Cliente <span class="hint" id="cliState">nuovo cliente</span></h3>
+    <div class="field">
+      <label for="f-cerca">Cerca in anagrafica</label>
+      <input id="f-cerca" type="search" placeholder="Scrivi nome, cognome o telefono" autocomplete="off">
+      <div class="sugg" id="sugg"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="f-nome">Nome *</label><input id="f-nome" autocomplete="off"></div>
+      <div class="field"><label for="f-cognome">Cognome *</label><input id="f-cognome" autocomplete="off"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="f-telefono">Telefono / WhatsApp *</label><input id="f-telefono" type="tel" inputmode="tel" placeholder="333 1234567"></div>
+      <div class="field"><label for="f-email">Email (facoltativa)</label><input id="f-email" type="email" inputmode="email" placeholder="Facoltativa"></div>
+    </div>
+    <h3>Ritiro / consegna</h3>
+    <div class="row">
+      <div class="field"><label for="f-data">Giorno ritiro / consegna</label><input id="f-data" type="date"></div>
+      <div class="field"><label for="f-ora">Ora</label><input id="f-ora" type="time"></div>
+    </div>
+
+    <h3>Prodotti <span class="hint">ognuno va al suo reparto</span></h3>
+    <div id="arts" style="display:grid;gap:10px"></div>
+    <button type="button" class="add-art" id="addArt">+ Aggiungi un altro prodotto</button>
+
+    <h3>Foto di riferimento</h3>
+    <div class="photos" id="photos"></div>
+    <div class="hint" id="photoHint"></div>
+
+    <h3>Prezzo e caparra</h3>
+    <div class="row">
+      <div class="field"><label for="f-prezzo">Prezzo totale €</label><input id="f-prezzo" inputmode="decimal" placeholder="0,00"></div>
+      <div class="field"><label for="f-caparra">Caparra versata €</label><input id="f-caparra" inputmode="decimal" placeholder="0,00"></div>
+    </div>
+    <div class="saldo" id="saldo"></div>
+
+    <div class="field"><label for="f-note">Note generali</label><textarea id="f-note" placeholder="Allergie, ritiro o consegna a domicilio, indirizzo…"></textarea></div>
+    <div class="hint" id="f-storia"></div>
+    <details class="storia" id="f-storico" hidden><summary>Storico modifiche</summary><ol id="f-storico-list"></ol></details>
+
+    <div class="pinbox" id="pinBox" hidden>
+      <b>Ordine troppo vicino</b>
+      <div id="pinMsg"></div>
+      <div class="cli-tools"><input id="pinInput" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN dei titolari" aria-label="PIN dei titolari"><button type="button" class="btn primary" id="pinBtn">Sblocca e salva</button></div>
+      <div class="err" id="pinErr" hidden></div>
+    </div>
+    <div class="err" id="formErr" hidden></div>
+    <div class="actions">
+      <button type="button" class="btn danger" id="delBtn" hidden>Annulla ordine</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn" id="cancelBtn">Chiudi</button>
+      <button type="submit" class="btn primary" id="saveBtn">Salva</button>
+    </div>
+  </form>
+</div>
+
+<!-- invio al cliente -->
+<div class="sheet-bg" id="sendBg" hidden>
+  <div class="sheet">
+    <h2>Invia al cliente</h2>
+    <div class="field">
+      <label for="s-testo">Messaggio (puoi modificarlo)</label>
+      <textarea id="s-testo" rows="11"></textarea>
+    </div>
+    <div class="sendgrid">
+      <a class="btn wa" id="s-wa" target="_blank" rel="noopener">WhatsApp</a>
+      <a class="btn" id="s-gmail" target="_blank" rel="noopener">Gmail</a>
+      <a class="btn" id="s-mail" target="_blank" rel="noopener">Altra email</a>
+      <button type="button" class="btn" id="s-copy">Copia testo</button>
+      <a class="btn" id="s-gcal" target="_blank" rel="noopener">Google Calendar</a>
+    </div>
+    <div class="hint" id="s-hint"></div>
+    <div><button type="button" class="btn" id="s-anag" hidden></button></div>
+    <div class="actions"><button type="button" class="btn" id="s-close">Chiudi</button></div>
+  </div>
+</div>
+
+<!-- impostazioni -->
+<div class="sheet-bg" id="setBg" hidden>
+  <form class="sheet" id="setForm" novalidate>
+    <h2>Impostazioni</h2>
+    <div class="hint" id="setAdminHint" hidden>Solo un'amministratrice può cambiare negozio, reparti e messaggi. Gli operatori li puoi aggiungere anche tu.</div>
+    <fieldset id="adminFields" style="border:0;padding:0;margin:0;display:grid;gap:14px;min-width:0">
+      <div class="field"><label for="c-nome">Nome del negozio</label><input id="c-nome" placeholder="Es. Pasticceria Rosa"></div>
+
+      <div class="set-sec">
+        <h3>Reparti</h3>
+        <div class="hint">Nome, colore e unità (separate da virgola, la prima è quella proposta di solito).</div>
+        <div id="repEdit" style="display:grid;gap:14px"></div>
+        <button type="button" class="add-art" id="repAdd">+ Aggiungi reparto</button>
+      </div>
+
+      <div class="set-sec">
+        <h3>Messaggi al cliente</h3>
+        <div class="hint">Puoi usare {nome} per il nome del cliente e {negozio} per il nome del negozio.</div>
+        <div class="field"><label for="c-saluto">Inizio messaggio (ordine)</label><input id="c-saluto"></div>
+        <div class="field" hidden><label for="c-salutoP">Inizio messaggio (preventivo)</label><input id="c-salutoP"></div>
+        <div class="field" hidden><label for="c-chiusuraP">Frase finale del preventivo</label><input id="c-chiusuraP"></div>
+        <div class="field"><label for="c-firma">Saluto finale</label><input id="c-firma" placeholder="Es. Grazie e a presto!"></div>
+      </div>
+      <div class="err" id="setErr" hidden></div>
+      <div class="actions"><button type="button" class="btn" id="setCancel">Chiudi</button><button type="submit" class="btn primary">Salva impostazioni</button></div>
+    </fieldset>
+
+    <div class="set-sec">
+      <h3>Operatori</h3>
+      <div class="hint">Nel modulo ordine bisogna scegliere un nome da questo elenco, altrimenti l'ordine non si salva.</div>
+      <div class="sugg" id="opList"></div>
+      <div class="cli-tools"><input id="opNew" placeholder="Nome nuovo operatore" autocomplete="off"><button type="button" class="btn" id="opAdd">Aggiungi</button></div>
+    </div>
+
+    <div class="set-sec" id="pinSec" hidden>
+      <h3>PIN dei titolari</h3>
+      <div class="hint">Serve per accettare un ordine quando un reparto non ha abbastanza giorni di preparazione (per esempio i Biscotti). Lo sanno solo i titolari: non scriverlo da nessuna parte nell'app.</div>
+      <div class="hint" id="pinState"></div>
+      <div class="cli-tools"><input id="pinNew" type="password" inputmode="numeric" autocomplete="new-password" placeholder="Nuovo PIN (almeno 4 cifre)" aria-label="Nuovo PIN"><button type="button" class="btn" id="pinSave">Salva PIN</button></div>
+    </div>
+
+    <div class="set-sec" id="userSec" hidden>
+      <h3>Chi può entrare nell'app</h3>
+      <div class="hint">Aggiungi l'email di chi deve usare l'app. Poi quella persona apre l'app, tocca "Crea il mio accesso" e sceglie una password.</div>
+      <div class="sugg" id="userList"></div>
+      <div class="cli-tools"><input id="userNew" type="email" inputmode="email" placeholder="email@esempio.it" autocomplete="off"><button type="button" class="btn" id="userAdd">Aggiungi</button></div>
+    </div>
+
+    <div class="set-sec">
+      <h3>Avvisi su questo dispositivo</h3>
+      <div class="hint" id="notifState"></div>
+      <div><button type="button" class="btn" id="notifBtn">Attiva avvisi</button></div>
+    </div>
+
+    <div class="set-sec" id="calSec" hidden>
+      <h3>Google Calendar</h3>
+      <div class="hint">Con questo link gli ordini compaiono da soli nel tuo Google Calendar. Non darlo a persone esterne.</div>
+      <div class="copyline"><input id="calLink" readonly><button type="button" class="btn" id="calCopy">Copia</button></div>
+      <ol class="steps">
+        <li>Sul computer apri calendar.google.com</li>
+        <li>A sinistra, accanto ad "Altri calendari", tocca <b>+</b> e poi <b>Da URL</b></li>
+        <li>Incolla il link e tocca <b>Aggiungi calendario</b></li>
+      </ol>
+      <div class="hint">Google aggiorna il calendario da solo ogni qualche ora: gli ordini nuovi compaiono lì con un po' di ritardo. Nell'app invece si vedono subito.</div>
+    </div>
+
+    <div class="set-sec">
+      <h3>Copia di sicurezza</h3>
+      <div class="hint">Ogni notte i dati vengono copiati in automatico. Qui puoi anche scaricarli quando vuoi.</div>
+      <div class="sendgrid"><button type="button" class="btn" id="bkExcel">Scarica ordini (Excel)</button><button type="button" class="btn" id="bkAll">Scarica tutto</button></div>
+    </div>
+
+    <div class="set-sec">
+      <div class="hint" id="whoami"></div>
+      <div class="actions" style="justify-content:space-between"><button type="button" class="btn" id="logoutBtn">Esci</button><button type="button" class="btn" id="setClose2">Chiudi</button></div>
+    </div>
+  </form>
+</div>
+
+<!-- stampa / PDF -->
+<div class="sheet-bg" id="printBg" hidden>
+  <form class="sheet" id="printForm" novalidate>
+    <h2>Stampa o salva in PDF</h2>
+    <div class="row">
+      <div class="field"><label for="p-giorno">Giorno</label><input id="p-giorno" type="date"></div>
+      <div class="field"><label for="p-rep">Reparto</label><select id="p-rep"></select></div>
+    </div>
+    <div class="seg full" role="group" aria-label="Giorno veloce">
+      <button type="button" id="p-oggi" aria-pressed="false">Oggi</button>
+      <button type="button" id="p-domani" aria-pressed="false">Domani</button>
+    </div>
+    <label class="toggle left"><input type="checkbox" id="p-prev" checked> Includi i preventivi</label>
+    <label class="toggle left"><input type="checkbox" id="p-cons"> Includi gli ordini già consegnati</label>
+    <label class="toggle left"><input type="checkbox" id="p-sep"> Ogni reparto su un foglio a parte</label>
+    <div class="saldo" id="p-conta"></div>
+    <div class="hint">Si apre la finestra di stampa: scegli la stampante, oppure <b>Salva come PDF</b>. Sul telefono tocca il pulsante <b>Condividi</b> nella finestra di stampa per salvare o inviare il PDF.</div>
+    <div class="actions"><button type="button" class="btn" id="p-chiudi">Chiudi</button><button type="submit" class="btn primary">Stampa / PDF</button></div>
+  </form>
+</div>
+
+<!-- scheda cliente -->
+<div class="sheet-bg" id="cliBg" hidden>
+  <form class="sheet" id="cliForm" novalidate>
+    <h2 id="cliTitle">Nuovo cliente</h2>
+    <div class="row">
+      <div class="field"><label for="k-nome">Nome *</label><input id="k-nome"></div>
+      <div class="field"><label for="k-cognome">Cognome *</label><input id="k-cognome"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="k-telefono">Telefono / WhatsApp *</label><input id="k-telefono" type="tel" inputmode="tel"></div>
+      <div class="field"><label for="k-email">Email (facoltativa)</label><input id="k-email" type="email" inputmode="email"></div>
+    </div>
+    <div class="field"><label for="k-note">Note sul cliente</label><textarea id="k-note" placeholder="Allergie, preferenze, cliente abituale…"></textarea></div>
+    <div class="err" id="cliErr" hidden></div>
+    <div class="actions">
+      <button type="button" class="btn danger" id="cliDel" hidden>Archivia</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn" id="cliCancel">Annulla</button>
+      <button type="submit" class="btn primary">Salva cliente</button>
+    </div>
+  </form>
+</div>
+
+</div>
+
+<div class="popup" id="popup" hidden role="alert"><div class="pt" id="popTitle"></div><div class="pb" id="popBody"></div><div class="actions"><button class="btn" id="popClose">Ok</button><button class="btn primary" id="popOpen">Apri ordine</button></div></div>
+<div class="viewer" id="viewer" hidden><img id="viewerImg" alt="Foto di riferimento"></div>
+<div class="toast" id="toast" hidden></div>
+<div id="printArea"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.99.3/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="stampa.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
