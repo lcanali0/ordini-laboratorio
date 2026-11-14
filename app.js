@@ -652,22 +652,44 @@ function updateSaldo() {
 /* ---------- preavviso minimo per reparto (es. Biscotti) ---------- */
 let formSblocco = null;   // sblocco dato dal PIN dei titolari, vale per un salvataggio
 const repList = arts => arts.map(a => a.reparto).join(",");
+// giorni lavorativi: il laboratorio è chiuso il lunedì e nelle festività
+function pasqua(y) {
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25),
+    g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4,
+    l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451), mese = Math.floor((h + l - 7 * m + 114) / 31);
+  return new Date(y, mese - 1, ((h + l - 7 * m + 114) % 31) + 1);
+}
+const FESTE = ["01-01", "01-06", "04-25", "05-01", "06-02", "08-15", "11-01", "12-08", "12-25", "12-26"];
+function chiuso(d) {
+  if (d.getDay() === 1) return true;
+  const md = isoDay(d).slice(5);
+  if (FESTE.includes(md)) return true;
+  const p = pasqua(d.getFullYear());
+  return isoDay(p) === isoDay(d);
+}
+function giorniLavorativi(dataIso) {
+  const fine = parseIso(dataIso), d = parseIso(today());
+  let n = 0;
+  for (let i = 0; i < 400 && d < fine; i++) { d.setDate(d.getDate() + 1); if (!chiuso(d)) n++; }
+  return n;
+}
 function serveSblocco(arts, data) {
   if (!data) return null;
   // come nel database: si controlla solo se cambiano il giorno o i reparti
   if (editing && !editing.annullato && editing.data === data && repList(articoli(editing)) === repList(arts)) return null;
-  const giorni = Math.round((parseIso(data) - parseIso(today())) / 864e5);
+  const giorni = giorniLavorativi(data);
   let peggio = null;
   for (const a of arts) {
     const r = REPARTI.find(x => x.id === a.reparto);
     const g = r ? Number(r.giorniMinimi) || 0 : 0;
-    if (g > giorni && (!peggio || g > peggio.minimo)) peggio = { nome: r.nome, minimo: g, giorni };
+    if (g > giorni && (!peggio || g > peggio.minimo)) peggio = { nome: r.nome, minimo: g, giorni, lavorativi: true };
   }
   return peggio;
 }
 function mostraPin(p) {
-  const quando = p.giorni <= 0 ? "oggi" : p.giorni === 1 ? "domani" : `tra ${p.giorni} giorni`;
-  $("pinMsg").textContent = `${p.nome}: servono almeno ${p.minimo} giorni di preparazione, ma il ritiro è ${quando}. Per accettare l'ordine lo stesso serve il PIN dei titolari.`;
+  const quando = p.lavorativi ? (p.giorni <= 0 ? "non c'è nessun giorno lavorativo prima del ritiro" : p.giorni === 1 ? "prima del ritiro c'è solo 1 giorno lavorativo" : `prima del ritiro ci sono solo ${p.giorni} giorni lavorativi`)
+    : "il ritiro è " + (p.giorni <= 0 ? "oggi" : p.giorni === 1 ? "domani" : `tra ${p.giorni} giorni`);
+  $("pinMsg").textContent = `${p.nome}: servono almeno ${p.minimo} giorni lavorativi di preparazione, ma ${quando}. Per accettare l'ordine lo stesso serve il PIN dei titolari.`;
   $("pinErr").hidden = true;
   $("pinInput").value = "";
   $("pinBox").hidden = false;
@@ -1213,7 +1235,7 @@ function renderRepEdit() {
     const gi = el("input"); gi.type = "number"; gi.min = "0"; gi.max = "60"; gi.inputMode = "numeric"; gi.value = r.giorniMinimi || 0;
     gi.style.cssText = "width:70px;margin-left:8px;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:7px 9px";
     gi.oninput = () => { r.giorniMinimi = Math.max(0, parseInt(gi.value, 10) || 0); };
-    gl.append("Giorni minimi di preparazione (0 = nessuno)", gi);
+    gl.append("Giorni lavorativi minimi di preparazione (lunedì e festività non contano; 0 = nessuno)", gi);
     const pl = el("label", "full hint", "Prodotti da scegliere, uno per riga (se vuoto, il prodotto si scrive a mano)");
     const pt = el("textarea"); pt.className = "full"; pt.rows = 4; pt.value = (r.prodotti || []).join("\n");
     pt.placeholder = "Es.\nPane casereccio\nFilone\nRosette"; pt.setAttribute("aria-label", "Prodotti " + r.nome);
