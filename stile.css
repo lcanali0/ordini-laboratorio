@@ -45,7 +45,7 @@ h1 { font-family: var(--display); font-weight: 800; font-size: 1.4rem; margin: 0
 .sync b { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-right: 5px; vertical-align: 1px; }
 .sync.ok b { background: var(--s-ready); }
 .sync.err b { background: var(--s-todo); }
-.iconbtn { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; width: 34px; height: 34px; font-size: 1rem; display: grid; place-items: center; }
+.iconbtn { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; width: 34px; height: 34px; font-size: 1rem; display: grid; place-items: center; color: var(--fg); text-decoration: none; font-weight: 700; }
 
 .seg { display: inline-flex; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
 .seg button { border: 0; background: none; border-radius: 999px; padding: 6px 16px; font-weight: 600; font-size: .9rem; color: var(--muted); }
@@ -247,3 +247,5 @@ main .wrap > *, .sheet > *, .reprow > *, .set-sec > * { min-width: 0; }
 .pinbox > * { min-width: 0; }
 .pinbox .cli-tools { flex-wrap: wrap; }
 .pinbox .cli-tools input { flex: 1 1 140px; }
+/* telefoni stretti: del collegamento resta solo il pallino colorato */
+@media (max-width: 430px) { .sync { font-size: 0; } .sync b { margin-right: 0; } .brand h1 { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .brand { min-width: 0; } .brand-r { gap: 6px; } .seg button { padding: 6px 11px; } }
