@@ -3,28 +3,28 @@ body { padding-top: env(safe-area-inset-top, 0px); }
 img { max-width: 100%; }
 /* Layout: una colonna da telefono; in alto vista Lista/Calendario, reparti e giorni; schede ordine per ora di consegna; pulsante "nuovo" fisso in basso */
 :root {
-  --bg: #f3f5f7; --surface: #ffffff; --fg: #1d2430; --muted: #5d6878; --line: #dde2e8;
-  --accent: #b8325a; --accent-fg: #ffffff; --wa: #1f8f4e;
-  --s-todo: #c2410c; --s-todo-bg: #fdeee4;
-  --s-work: #a16207; --s-work-bg: #fdf5d8;
-  --s-ready: #15803d; --s-ready-bg: #e3f5e8;
-  --s-done: #5d6878; --s-done-bg: #e9ecf0;
-  --shadow: 0 1px 2px rgba(20,30,50,.06), 0 4px 14px rgba(20,30,50,.06);
+  --bg: #f6efe7; --surface: #fffaf5; --fg: #2e1f16; --muted: #7a6353; --line: #e7d8c9;
+  --accent: #6b3f22; --accent-fg: #ffffff; --wa: #1f8f4e;
+  --s-todo: #c2410c; --s-todo-bg: #fbe7da;
+  --s-work: #a16207; --s-work-bg: #fbf1d3;
+  --s-ready: #15803d; --s-ready-bg: #e3f2e2;
+  --s-done: #7a6353; --s-done-bg: #efe5da;
+  --shadow: 0 1px 2px rgba(60,35,20,.06), 0 4px 14px rgba(60,35,20,.06);
   --display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
   --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #13171d; --surface: #1c222b; --fg: #e8ecf1; --muted: #9aa5b4; --line: #2c3440;
-  --accent: #e5698f; --accent-fg: #1a0e13; --wa: #5fd08f;
+  --bg: #1a1310; --surface: #241b16; --fg: #f2e8de; --muted: #b5a191; --line: #3b2d24;
+  --accent: #d1a079; --accent-fg: #1f140c; --wa: #5fd08f;
   --s-todo: #fb9a62; --s-todo-bg: #3a2216; --s-work: #f0c752; --s-work-bg: #352c12;
-  --s-ready: #6bd38e; --s-ready-bg: #163222; --s-done: #9aa5b4; --s-done-bg: #262d37;
+  --s-ready: #6bd38e; --s-ready-bg: #163222; --s-done: #b5a191; --s-done-bg: #2e231d;
   --shadow: 0 1px 2px rgba(0,0,0,.3); color-scheme: dark;
 } }
 :root[data-theme="dark"] {
-  --bg: #13171d; --surface: #1c222b; --fg: #e8ecf1; --muted: #9aa5b4; --line: #2c3440;
-  --accent: #e5698f; --accent-fg: #1a0e13; --wa: #5fd08f;
+  --bg: #1a1310; --surface: #241b16; --fg: #f2e8de; --muted: #b5a191; --line: #3b2d24;
+  --accent: #d1a079; --accent-fg: #1f140c; --wa: #5fd08f;
   --s-todo: #fb9a62; --s-todo-bg: #3a2216; --s-work: #f0c752; --s-work-bg: #352c12;
-  --s-ready: #6bd38e; --s-ready-bg: #163222; --s-done: #9aa5b4; --s-done-bg: #262d37;
+  --s-ready: #6bd38e; --s-ready-bg: #163222; --s-done: #b5a191; --s-done-bg: #2e231d;
   --shadow: 0 1px 2px rgba(0,0,0,.3); color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -126,7 +126,7 @@ main .wrap { padding-block: 14px 120px; display: grid; gap: 18px; }
 .legend-row { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .8rem; color: var(--muted); }
 .legend-row span { display: inline-flex; gap: 5px; align-items: center; }
 
-.fab { position: fixed; z-index: 6; right: max(16px, calc(env(safe-area-inset-right, 0px) + 16px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); background: var(--accent); color: var(--accent-fg); border: 0; border-radius: 999px; padding: 15px 22px; font-weight: 700; font-size: 1.02rem; box-shadow: 0 6px 20px rgba(184,50,90,.35); }
+.fab { position: fixed; z-index: 6; right: max(16px, calc(env(safe-area-inset-right, 0px) + 16px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); background: var(--accent); color: var(--accent-fg); border: 0; border-radius: 999px; padding: 15px 22px; font-weight: 700; font-size: 1.02rem; box-shadow: 0 6px 20px rgba(107,63,34,.35); }
 
 /* fogli */
 .sheet-bg { position: fixed; inset: 0; z-index: 20; background: rgba(10,15,25,.5); display: flex; align-items: flex-end; justify-content: center; }
