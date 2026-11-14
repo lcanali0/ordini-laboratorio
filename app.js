@@ -524,7 +524,7 @@ function addArtRow(a) {
     const i = el("input");
     i.type = "radio"; i.name = "rep" + n; i.value = r.id; i.id = `rep${n}-${r.id}`;
     i.checked = r.id === def;
-    i.onchange = () => { box.style.setProperty("--dep", repColor(r.id)); fillUnita(su, r.id, null); };
+    i.onchange = () => { box.style.setProperty("--dep", repColor(r.id)); fillUnita(su, r.id, null); fillProdotti(r.id); };
     l.append(i, dot(r.id), r.nome);
     deps.append(l);
   }
@@ -535,8 +535,25 @@ function addArtRow(a) {
   const lp = el("label", null, "Cosa"); lp.htmlFor = `a${n}-prodotto`;
   const ip = el("input"); ip.id = `a${n}-prodotto`; ip.className = "a-prodotto"; ip.placeholder = "Es. Torta millefoglie, biscotti al burro, pizzette, pane casereccio";
   ip.value = a ? a.prodotto || "" : "";
-  fp.append(lp, ip);
+  // reparti con una lista di prodotti (Impostazioni): si sceglie dal menu invece di scrivere
+  const sp = el("select"); sp.id = `a${n}-prodotto-sel`; sp.className = "a-prodotto-sel"; sp.hidden = true;
+  const fillProdotti = (repId, valore) => {
+    const r = REPARTI.find(x => x.id === repId);
+    const lista = r && Array.isArray(r.prodotti) ? r.prodotti.filter(Boolean) : [];
+    if (!lista.length) {
+      sp.hidden = true; ip.hidden = false; lp.htmlFor = ip.id; return;
+    }
+    const attuale = valore != null ? valore : (sp.hidden ? ip.value.trim() : sp.value);
+    sp.textContent = "";
+    const vuoto = el("option", null, "Scegli il prodotto…"); vuoto.value = ""; sp.append(vuoto);
+    const voci = attuale && !lista.includes(attuale) ? [attuale, ...lista] : lista;   // un ordine vecchio tiene il suo prodotto
+    for (const v of voci) { const o = el("option", null, v); o.value = v; sp.append(o); }
+    sp.value = voci.includes(attuale) ? attuale : "";
+    sp.hidden = false; ip.hidden = true; lp.htmlFor = sp.id;
+  };
+  fp.append(lp, ip, sp);
   box.append(fp);
+  fillProdotti(def, a ? a.prodotto || "" : null);
 
   const row = el("div", "row");
   const fq = el("div", "field");
@@ -724,7 +741,7 @@ function readArts() {
     const r = box.querySelector("input[type=radio]:checked");
     return {
       reparto: r ? r.value : "",
-      prodotto: box.querySelector(".a-prodotto").value.trim(),
+      prodotto: (box.querySelector(".a-prodotto-sel").hidden ? box.querySelector(".a-prodotto") : box.querySelector(".a-prodotto-sel")).value.trim(),
       quantita: box.querySelector(".a-q").value.trim(),
       unita: box.querySelector(".a-u").value,
       note: box.querySelector(".a-n").value.trim(),
@@ -1197,7 +1214,11 @@ function renderRepEdit() {
     gi.style.cssText = "width:70px;margin-left:8px;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:7px 9px";
     gi.oninput = () => { r.giorniMinimi = Math.max(0, parseInt(gi.value, 10) || 0); };
     gl.append("Giorni minimi di preparazione (0 = nessuno)", gi);
-    row.append(c, n, rm, u, gl);
+    const pl = el("label", "full hint", "Prodotti da scegliere, uno per riga (se vuoto, il prodotto si scrive a mano)");
+    const pt = el("textarea"); pt.className = "full"; pt.rows = 4; pt.value = (r.prodotti || []).join("\n");
+    pt.placeholder = "Es.\nPane casereccio\nFilone\nRosette"; pt.setAttribute("aria-label", "Prodotti " + r.nome);
+    pt.oninput = () => { r.prodotti = [...new Set(pt.value.split("\n").map(x => x.trim()).filter(Boolean))]; };
+    row.append(c, n, rm, u, gl, pl, pt);
     box.append(row);
   });
 }
@@ -1237,7 +1258,7 @@ function openSettings() {
   $("c-salutoP").value = config.salutoPreventivo || "Ciao {nome}, ecco il preventivo da {negozio}:";
   $("c-chiusuraP").value = config.chiusuraPreventivo || "Facci sapere se va bene così confermiamo l'ordine.";
   $("c-firma").value = config.firma || "Grazie e a presto!";
-  repBozza = REPARTI.map(r => ({ ...r, unita: [...(r.unita || [])] }));
+  repBozza = REPARTI.map(r => ({ ...r, unita: [...(r.unita || [])], prodotti: [...(r.prodotti || [])] }));
   renderRepEdit();
   $("adminFields").disabled = !sonoAdmin;
   $("setAdminHint").hidden = sonoAdmin;

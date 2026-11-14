@@ -221,6 +221,7 @@ details.storia summary { font-weight: 700; cursor: pointer; }
 .reprow { display: grid; grid-template-columns: 44px 1fr auto; gap: 8px; align-items: center; }
 .reprow input[type=color] { width: 44px; height: 40px; border: 1px solid var(--line); border-radius: 10px; padding: 2px; background: var(--bg); }
 .reprow .full { grid-column: 1 / -1; }
+.reprow textarea { border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 9px 11px; width: 100%; font: inherit; resize: vertical; }
 .reprow input[type=text] { border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 9px 11px; min-width: 0; width: 100%; }
 .copyline { display: flex; gap: 8px; }
 .copyline input { flex: 1; min-width: 0; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 9px 11px; font-size: .8rem; }
