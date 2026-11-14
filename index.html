@@ -249,7 +249,7 @@
 <!-- stampa / PDF -->
 <div class="sheet-bg" id="printBg" hidden>
   <form class="sheet" id="printForm" novalidate>
-    <h2>Stampa o salva in PDF</h2>
+    <h2>Stampa, PDF o Excel</h2>
     <div class="row">
       <div class="field"><label for="p-giorno">Giorno</label><input id="p-giorno" type="date"></div>
       <div class="field"><label for="p-rep">Reparto</label><select id="p-rep"></select></div>
@@ -258,12 +258,13 @@
       <button type="button" id="p-oggi" aria-pressed="false">Oggi</button>
       <button type="button" id="p-domani" aria-pressed="false">Domani</button>
     </div>
-    <label class="toggle left"><input type="checkbox" id="p-prev" checked> Includi i preventivi</label>
+    <label class="toggle left" hidden><input type="checkbox" id="p-prev" checked> Includi i preventivi</label>
     <label class="toggle left"><input type="checkbox" id="p-cons"> Includi gli ordini già consegnati</label>
     <label class="toggle left"><input type="checkbox" id="p-sep"> Ogni reparto su un foglio a parte</label>
     <div class="saldo" id="p-conta"></div>
     <div class="hint">Si apre la finestra di stampa: scegli la stampante, oppure <b>Salva come PDF</b>. Sul telefono tocca il pulsante <b>Condividi</b> nella finestra di stampa per salvare o inviare il PDF.</div>
-    <div class="actions"><button type="button" class="btn" id="p-chiudi">Chiudi</button><button type="submit" class="btn primary">Stampa / PDF</button></div>
+    <div class="hint"><b>Scarica Excel</b> salva un file con gli stessi ordini: un foglio con clienti e prodotti e un foglio con il totale di ogni prodotto.</div>
+    <div class="actions"><button type="button" class="btn" id="p-chiudi">Chiudi</button><button type="button" class="btn" id="p-excel">Scarica Excel</button><button type="submit" class="btn primary">Stampa / PDF</button></div>
   </form>
 </div>
 

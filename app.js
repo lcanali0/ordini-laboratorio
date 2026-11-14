@@ -1335,6 +1335,73 @@ function backupExcel() {
   }
   scarica(`ordini-${today()}.csv`, "﻿" + righe.map(r => r.map(csvCell).join(";")).join("\r\n"), "text/csv;charset=utf-8");
 }
+/* ---------- Excel degli ordini del giorno ---------- */
+function caricaXlsx() {
+  if (window.XLSX) return Promise.resolve(window.XLSX);
+  return new Promise((ok, ko) => {
+    const sc = document.createElement("script");
+    sc.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    sc.onload = () => window.XLSX ? ok(window.XLSX) : ko(new Error("xlsx"));
+    sc.onerror = () => ko(new Error("xlsx"));
+    document.head.append(sc);
+  });
+}
+function righeExcel() {
+  const op = opzioniStampa();
+  const dove = op.reparto && op.reparto !== "tutti" ? op.reparto : null;
+  const lista = orders.filter(o => !o.annullato && o.data === op.giorno
+      && (op.consegnati || !o.consegnato)
+      && (!dove || articoli(o).some(a => a.reparto === dove)))
+    .sort((a, b) => (a.ora || "99").localeCompare(b.ora || "99") || (a.cliente || "").localeCompare(b.cliente || "", "it"));
+  const numero = v => { if (typeof v === "number") return v; const n = parseFloat(String(v == null ? "" : v).replace(",", ".")); return isNaN(n) ? null : n; };
+  const ordini = [["Ora", "Cliente", "Telefono", "Reparto", "Prodotto", "Quantità", "Unità", "Note prodotto", "Note ordine", "Prezzo €", "Caparra €", "Da saldare €", "Inserito da", "Consegnato"]];
+  const tot = new Map();
+  for (const o of lista) {
+    const arts = articoli(o).filter(a => !dove || a.reparto === dove);
+    const cli = clienteDi(o);
+    const tel = (cli && cli.telefono) || o.telefono || "";
+    const prezzo = numero(o.prezzo), cap = numero(o.caparra);
+    (arts.length ? arts : [{}]).forEach((a, i) => {
+      const q = numero(a.quantita);
+      ordini.push([o.ora || "", o.cliente || "", tel, a.reparto ? repNome(a.reparto) : "", a.prodotto || "", q != null ? q : (a.quantita || ""), a.unita || "", a.note || "",
+        i === 0 ? (o.note || "") : "", i === 0 ? prezzo : null, i === 0 ? cap : null,
+        i === 0 && prezzo != null ? Math.round((prezzo - (cap || 0)) * 100) / 100 : null, i === 0 ? (o.autore || "") : "", i === 0 && o.consegnato ? "sì" : ""]);
+      if (!a.prodotto) return;
+      const k = [a.reparto || "", a.prodotto.trim().toLowerCase(), a.unita || ""].join("|");
+      if (!tot.has(k)) tot.set(k, { rep: a.reparto ? repNome(a.reparto) : "", prodotto: a.prodotto.trim(), unita: a.unita || "", q: 0, testo: [], n: 0 });
+      const t = tot.get(k); t.n++;
+      if (q != null) t.q += q; else if (a.quantita) t.testo.push(a.quantita);
+    });
+  }
+  const totali = [["Reparto", "Prodotto", "Quantità totale", "Unità", "N. ordini"]];
+  for (const t of [...tot.values()].sort((a, b) => a.rep.localeCompare(b.rep, "it") || a.prodotto.localeCompare(b.prodotto, "it")))
+    totali.push([t.rep, t.prodotto, t.testo.length ? [t.q || "", ...t.testo].filter(Boolean).join(" + ") : t.q, t.unita, t.n]);
+  return { ordini, totali, quanti: lista.length };
+}
+async function scaricaExcel() {
+  const g = $("p-giorno").value;
+  if (!g) { contaStampa(); return; }
+  const { ordini, totali, quanti } = righeExcel();
+  if (!quanti) { $("p-conta").textContent = "Nessun ordine per questa scelta."; return; }
+  const rep = $("p-rep").value;
+  const nome = `ordini-${g}${rep !== "tutti" ? "-" + repNome(rep).toLowerCase().replace(/\s+/g, "-") : ""}`;
+  const b = $("p-excel"); b.disabled = true; b.textContent = "Preparo…";
+  try {
+    const X = await caricaXlsx();
+    const wb = X.utils.book_new();
+    const s1 = X.utils.aoa_to_sheet(ordini);
+    s1["!cols"] = [6, 22, 14, 12, 26, 9, 8, 24, 24, 9, 9, 11, 12, 10].map(w => ({ wch: w }));
+    const s2 = X.utils.aoa_to_sheet(totali);
+    s2["!cols"] = [12, 30, 14, 8, 9].map(w => ({ wch: w }));
+    X.utils.book_append_sheet(wb, s1, "Ordini");
+    X.utils.book_append_sheet(wb, s2, "Totale prodotti");
+    X.writeFile(wb, nome + ".xlsx");
+  } catch {
+    // senza connessione al servizio Excel: file CSV, si apre lo stesso con Excel
+    const testo = r => r.map(v => csvCell(typeof v === "number" ? String(v).replace(".", ",") : v)).join(";");
+    scarica(nome + ".csv", "﻿" + [...ordini, [], ["TOTALE PRODOTTI"], ...totali].map(testo).join("\r\n"), "text/csv;charset=utf-8");
+  } finally { b.disabled = false; b.textContent = "Scarica Excel"; }
+}
 async function backupTutto() {
   const b = $("bkAll"); b.disabled = true; b.textContent = "Preparo…";
   try {
@@ -1410,6 +1477,7 @@ $("calCopy").onclick = async () => { try { await navigator.clipboard.writeText($
 $("bkExcel").onclick = backupExcel;
 $("printBtn").onclick = () => openStampa();
 $("printForm").onsubmit = stampa;
+$("p-excel").onclick = scaricaExcel;
 $("p-chiudi").onclick = () => { $("printBg").hidden = true; };
 $("p-oggi").onclick = () => { $("p-giorno").value = today(); contaStampa(); };
 $("p-domani").onclick = () => { $("p-giorno").value = tomorrow(); contaStampa(); };
