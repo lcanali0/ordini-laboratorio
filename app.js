@@ -968,10 +968,36 @@ $("setBtn").onclick = openSettings;
 $("setCancel").onclick = () => { $("setBg").hidden = true; };
 $("setClose2").onclick = () => { $("setBg").hidden = true; };
 $("setForm").onsubmit = saveSettings;
+
+// Novità: avviso automatico una volta per ogni aggiornamento, e sempre dal tasto ?
+function mostraNovita(soloNuove) {
+  const lista = typeof NOVITA !== "undefined" ? NOVITA : [];
+  if (!lista.length) return;
+  const vista = store.get("novitaVista") || "";
+  const voci = soloNuove ? lista.filter(n => n.id > vista).slice(0, vista ? 5 : 1) : lista;
+  if (!voci.length) return;
+  $("newsTitle").textContent = soloNuove ? "Novità nell'app" : "Novità e guida";
+  $("newsHint").textContent = soloNuove ? "L'app è stata aggiornata. Ecco cosa cambia:" : "Tutti gli aggiornamenti, dal più recente. Per la spiegazione dei tasti tocca Apri la guida.";
+  const box = $("newsList"); box.replaceChildren();
+  for (const n of voci) {
+    const sec = el("section", "news-item");
+    sec.append(el("h3", null, n.titolo));
+    const ul = el("ul");
+    for (const p of n.punti) ul.append(el("li", null, p));
+    sec.append(ul); box.append(sec);
+  }
+  $("newsBg").hidden = false;
+}
+function chiudiNovita() { $("newsBg").hidden = true; if (typeof NOVITA !== "undefined" && NOVITA.length) store.set("novitaVista", NOVITA[0].id); }
+$("guidaBtn").onclick = () => mostraNovita(false);
+$("newsClose").onclick = chiudiNovita;
+$("newsBg").addEventListener("click", e => { if (e.target === $("newsBg")) chiudiNovita(); });
+setTimeout(() => mostraNovita(true), 800);
 $("viewer").onclick = () => { $("viewer").hidden = true; };
 for (const id of ["formBg", "sendBg", "setBg", "cliBg", "printBg"]) $(id).addEventListener("click", e => { if (e.target === $(id)) $(id).hidden = true; });
 document.addEventListener("keydown", e => {
   if (e.key !== "Escape") return;
+  if (!$("newsBg").hidden) { chiudiNovita(); return; }
   for (const id of ["viewer", "sendBg", "setBg", "cliBg", "printBg", "formBg"]) if (!$(id).hidden) { $(id).hidden = true; break; }
 });
 

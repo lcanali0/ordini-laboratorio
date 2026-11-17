@@ -249,3 +249,8 @@ main .wrap > *, .sheet > *, .reprow > *, .set-sec > * { min-width: 0; }
 .pinbox .cli-tools input { flex: 1 1 140px; }
 /* telefoni stretti: del collegamento resta solo il pallino colorato */
 @media (max-width: 430px) { .sync { font-size: 0; } .sync b { margin-right: 0; } .brand h1 { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .brand { min-width: 0; } .brand-r { gap: 6px; } .seg button { padding: 6px 11px; } }
+
+.news { display: grid; gap: 12px; }
+.news-item { border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; background: var(--bg); }
+.news-item h3 { margin: 0 0 4px; font-size: .95rem; color: var(--accent); }
+.news-item ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }

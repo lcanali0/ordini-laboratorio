@@ -1,6 +1,6 @@
 // Fa aprire l'app anche con connessione debole: prima prova la rete, poi la copia salvata.
-const CACHE = "ordini-v8";
-const BASE = ["./", "index.html", "stile.css", "app.js", "stampa.js", "config.js", "manifest.webmanifest", "icona-192.png"];
+const CACHE = "ordini-v9";
+const BASE = ["./", "index.html", "stile.css", "app.js", "stampa.js", "novita.js", "config.js", "manifest.webmanifest", "icona-192.png"];
 
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(BASE)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => {
