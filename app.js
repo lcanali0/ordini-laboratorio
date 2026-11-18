@@ -866,7 +866,13 @@ function messageFor(o) {
   if (isPrev) { lines.push(""); lines.push(fill(config.chiusuraPreventivo || "Facci sapere se va bene così confermiamo l'ordine.")); }
   lines.push("");
   lines.push(config.firma || "Grazie e a presto!");
+  lines.push("");
+  lines.push("Informativa privacy: " + linkPrivacy());
   return lines.join("\n");
+}
+function linkPrivacy() {
+  try { if (/^https?:$/.test(location.protocol)) return new URL("privacy.html", location.origin + location.pathname).href; } catch {}
+  return "https://lcanali0.github.io/ordini-laboratorio/privacy.html";
 }
 function waNumber(tel) {
   let d = String(tel || "").replace(/[^\d+]/g, "");

@@ -2,6 +2,13 @@
 // (id nuovo = data): all'apertura le ragazze vedono l'avviso una volta sola.
 const NOVITA = [
   {
+    id: "2026-11-18",
+    titolo: "18 novembre 2026",
+    punti: [
+      "Privacy: in fondo al messaggio di conferma per il cliente (WhatsApp o email) c'è ora il link all'informativa privacy. Non dovete fare niente: si aggiunge da solo.",
+    ],
+  },
+  {
     id: "2026-11-17",
     titolo: "17 novembre 2026",
     punti: [
