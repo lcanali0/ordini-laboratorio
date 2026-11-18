@@ -129,7 +129,7 @@ function renderChips() {
 }
 
 function card(o) {
-  const c = el("article", "card" + (o.annullato ? " ann" : o.consegnato ? " done" : ""));
+  const c = el("article", "card" + (o.annullato ? " ann" : o.consegnato ? " done" : "") + (isProva(o.id) ? " prova" : ""));
   const head = el("div", "c-head");
   head.append(el("div", "time", o.ora || "--:--"));
   if (view === "arc") head.firstChild.title = o.data ? fmtDay(o.data) : "";
@@ -138,7 +138,8 @@ function card(o) {
   const sub = [o.telefono, o.autore ? "inserito da " + o.autore : ""].filter(Boolean).join(" · ");
   if (sub) who.append(el("div", "sub", sub));
   head.append(who);
-  if (o.annullato) head.append(el("span", "badge ann", "Annullato"));
+  if (isProva(o.id)) head.append(el("span", "badge provab", "PROVA"));
+  else if (o.annullato) head.append(el("span", "badge ann", "Annullato"));
   else if (o.consegnato) head.append(el("span", "badge cons", "Consegnato"));
   else if (o.tipo === "preventivo") head.append(el("span", "badge prev", "Preventivo"));
   else if (orderReady(o)) head.append(el("span", "badge ready", "Tutto pronto"));
@@ -355,6 +356,7 @@ function openCliente(c) {
   $("k-telefono").value = c ? c.telefono || "" : "";
   $("k-email").value = c ? c.email || "" : "";
   $("k-note").value = c ? c.note || "" : "";
+  $("k-prova").checked = !!(c && c.prova); $("k-provaBox").hidden = !sonoAdmin;
   $("cliDel").hidden = !c; $("cliDel").textContent = "Archivia"; delete $("cliDel").dataset.confirm;
   $("cliErr").hidden = true;
   $("cliBg").hidden = false;
@@ -366,6 +368,7 @@ async function saveCliente(ev) {
   const manca = [!d.nome && "il nome", !d.cognome && "il cognome", digits(d.telefono).length < 6 && "il telefono"].filter(Boolean);
   if (manca.length) return err("Manca " + manca.join(", ") + " del cliente. L'email invece è facoltativa.");
   if (!live) return err("Non collegato: non posso salvare adesso.");
+  if (sonoAdmin) d.prova = $("k-prova").checked;
   try {
     if (editingCliente) await api.update("clienti", editingCliente.id, d);
     else {
@@ -390,6 +393,7 @@ async function deleteCliente() {
 
 // nel modulo ordine
 function setFormCliente(c) {
+  setTimeout(aggiornaAvvisoProva, 0);
   formClienteId = c ? c.id : null;
   $("f-nome").value = c ? c.nome || "" : "";
   $("f-cognome").value = c ? c.cognome || "" : "";
@@ -402,14 +406,17 @@ function setFormCliente(c) {
 function renderSugg() {
   const box = $("sugg");
   box.textContent = "";
-  for (const c of matchClienti($("f-cerca").value).slice(0, 5)) {
+  const inProva = $("f-operatore").value === PROVA;
+  const lista = inProva ? clientiProva() : matchClienti($("f-cerca").value);
+  if (inProva) box.append(el("span", "hint", lista.length ? "In prova si usa solo il cliente di prova:" : "Non c'è ancora un cliente di prova: Rosa lo segna da Clienti, nella scheda del cliente."));
+  for (const c of lista.slice(0, 5)) {
     const b = el("button"); b.type = "button";
     b.append(el("b", null, fullName(c) || "Senza nome"));
     b.append(el("span", null, [c.telefono, c.email].filter(Boolean).join(" · ") || "nessun recapito"));
     b.onclick = () => setFormCliente(c);
     box.append(b);
   }
-  if ($("f-cerca").value.trim() && !box.children.length) box.append(el("span", "hint", "Nessun cliente trovato: compila i campi qui sotto e verrà aggiunto all'anagrafica."));
+  if (!inProva && $("f-cerca").value.trim() && !box.children.length) box.append(el("span", "hint", "Nessun cliente trovato: compila i campi qui sotto e verrà aggiunto all'anagrafica."));
 }
 // salva o aggiorna il cliente dell'ordine e ne restituisce l'id
 async function upsertCliente(d) {
@@ -433,7 +440,9 @@ function fillOperatoreSelect(keep) {
   const ph = el("option", null, "Scegli il tuo nome…"); ph.value = "";
   sel.append(ph);
   for (const n of nomiOperatori()) { const op = el("option", null, n); op.value = n; sel.append(op); }
-  sel.value = nomiOperatori().includes(cur) ? cur : "";
+  const pr = el("option", null, "Prova (per esercitarsi, non salva niente)"); pr.value = PROVA; sel.append(pr);
+  sel.value = nomiOperatori().includes(cur) || cur === PROVA ? cur : "";
+  aggiornaAvvisoProva();
   $("opHint").textContent = nomiOperatori().length ? "" : "L'elenco operatori è vuoto: aggiungili da Impostazioni (⚙ in alto).";
 }
 function renderOperatori() {
@@ -790,7 +799,10 @@ async function saveForm(ev) {
   if (!$("f-ora").value) missing.push("l'ora");
   if (missing.length) return err("Manca " + missing.join(", ") + ".");
   if (Number.isNaN(prezzo) || Number.isNaN(caparra)) return err("Scrivi prezzo e caparra solo con numeri, es. 45,50.");
-  const preavviso = serveSblocco(arts, $("f-data").value);
+  const inProva = $("f-operatore").value === PROVA;
+  if (inProva && !clientiProva().some(c => c.id === formClienteId)) return err(clientiProva().length ? "In prova scegli il cliente di prova (lo trovi sotto Cerca in anagrafica)." : "Non c'è ancora un cliente di prova: Rosa lo segna da Clienti, nella scheda del cliente.");
+  if (inProva && editing && !isProva(editing.id)) return err("Con l'operatore Prova non si possono modificare gli ordini veri: scegli il tuo nome.");
+  const preavviso = inProva ? null : serveSblocco(arts, $("f-data").value);
   if (preavviso && !formSblocco) return mostraPin(preavviso);
   if (!needLive()) return;
   const cli = { nome: $("f-nome").value.trim(), cognome: $("f-cognome").value.trim(), telefono: $("f-telefono").value.trim(), email: $("f-email").value.trim() };
@@ -809,7 +821,9 @@ async function saveForm(ev) {
     aggiornato: new Date().toISOString(),
   };
   if (formSblocco) { data.sblocco = formSblocco; data.sbloccatoDa = operatore; }
-  store.set("autore", operatore);
+  if (operatore !== PROVA) store.set("autore", operatore);
+  scritturaProva = operatore === PROVA || isProva(formClienteId) || !!(editing && isProva(editing.id));
+  if (scritturaProva) delete data.sblocco;
   $("saveBtn").disabled = true;
   try {
     data.clienteId = await upsertCliente(cli);
@@ -818,7 +832,7 @@ async function saveForm(ev) {
       data.autore = operatore; data.creato = data.aggiornato; data.consegnato = false; data.annullato = false;
       const id = await api.create("ordini", data);
       mieiNuovi.add(id);
-      toast(formTipo === "preventivo" ? "Preventivo salvato" : "Ordine salvato");
+      toast(scritturaProva ? "Ordine di PROVA salvato solo su questo dispositivo" : formTipo === "preventivo" ? "Preventivo salvato" : "Ordine salvato");
     }
     closeForm();
   } catch (e) {
@@ -826,7 +840,7 @@ async function saveForm(ev) {
     if (m) { formSblocco = null; mostraPin({ nome: m[1], minimo: +m[2], giorni: +m[3] }); }
     else err(writeError(e));
   }
-  finally { $("saveBtn").disabled = false; }
+  finally { $("saveBtn").disabled = false; scritturaProva = false; }
 }
 
 // gli ordini non si cancellano: si annullano e restano nell'Archivio
@@ -836,7 +850,8 @@ async function deleteOrder() {
   if (!b.dataset.confirm) { b.dataset.confirm = "1"; b.textContent = "Tocca di nuovo per annullare"; return; }
   if (!needLive() || !editing) return;
   const chi = $("f-operatore").value;
-  store.set("autore", chi);
+  if (chi === PROVA && !isProva(editing.id)) { $("formErr").textContent = "Con l'operatore Prova non si possono annullare gli ordini veri."; $("formErr").hidden = false; return; }
+  if (chi !== PROVA) store.set("autore", chi);
   try {
     await api.update("ordini", editing.id, { annullato: true, annullatoDa: chi, modificatoDa: chi, aggiornato: new Date().toISOString() });
     toast("Ordine annullato: lo trovi nell'Archivio"); closeForm();
@@ -974,6 +989,13 @@ $("setBtn").onclick = openSettings;
 $("setCancel").onclick = () => { $("setBg").hidden = true; };
 $("setClose2").onclick = () => { $("setBg").hidden = true; };
 $("setForm").onsubmit = saveSettings;
+$("f-operatore").addEventListener("change", () => {
+  if ($("f-operatore").value === PROVA) {
+    const cp = clientiProva();
+    if (cp.length && !cp.some(c => c.id === formClienteId)) setFormCliente(cp[0]);
+  }
+  aggiornaAvvisoProva(); renderSugg();
+});
 
 // Novità: avviso automatico una volta per ogni aggiornamento, e sempre dal tasto ?
 function mostraNovita(soloNuove) {
@@ -1014,14 +1036,45 @@ setInterval(() => { if ($("formBg").hidden) render(); }, 5 * 60 * 1000);
 const dati = { ordini: new Map(), clienti: new Map(), operatori: new Map(), impostazioni: new Map() };
 const mieiNuovi = new Set();   // ordini creati da questo dispositivo: niente avviso
 const conId = r => ({ id: r.id, ...r.data });
+/* ---------- modalità prova: con l'operatore "Prova" niente va nel database ----------
+   Gli ordini e i clienti di prova restano solo su questo dispositivo e spariscono chiudendo l'app. */
+const PROVA = "Prova";
+const isProva = id => String(id || "").startsWith("prova-");
+let scritturaProva = false;
+const sandbox = {
+  load() { try { return JSON.parse(sessionStorage.getItem("prova-docs") || "[]"); } catch { return []; } },
+  save() {
+    const out = [];
+    for (const coll of ["ordini", "clienti"]) for (const d of dati[coll].values()) if (isProva(d.id)) out.push({ coll, d });
+    try { sessionStorage.setItem("prova-docs", JSON.stringify(out)); } catch {}
+  },
+  inject() { for (const { coll, d } of sandbox.load()) if (dati[coll]) dati[coll].set(d.id, d); },
+};
+const clientiProva = () => clienti.filter(c => c.prova && !c.archiviato);
+function aggiornaAvvisoProva() {
+  const box = $("provaAvviso"); if (!box) return;
+  box.hidden = !($("f-operatore").value === PROVA || isProva(formClienteId) || (editing && isProva(editing.id)));
+}
+
 const api = {
   async create(coll, data) {
+    if (scritturaProva && (coll === "ordini" || coll === "clienti")) {
+      const id = "prova-" + Math.random().toString(36).slice(2, 10);
+      dati[coll].set(id, { id, ...data }); sandbox.save(); aggiornaVista();
+      return id;
+    }
     const { data: r, error } = await sb.from("docs").insert({ coll, data }).select("id,data").single();
     if (error) throw error;
     dati[coll].set(r.id, conId(r)); aggiornaVista();
     return r.id;
   },
   async update(coll, id, patch) {
+    if (isProva(id)) {
+      const cur = dati[coll].get(id);
+      if (cur) { dati[coll].set(id, { ...cur, ...patch }); sandbox.save(); aggiornaVista(); }
+      return;
+    }
+    if (scritturaProva) return; // in prova non si toccano i dati veri
     const { error } = await sb.rpc("aggiorna_doc", { p_coll: coll, p_id: id, p_patch: patch });
     if (error) throw error;
     const cur = dati[coll].get(id);
@@ -1060,6 +1113,7 @@ async function caricaTutto() {
   }
   for (const m of Object.values(dati)) m.clear();
   for (const r of tutti) if (dati[r.coll]) dati[r.coll].set(r.id, conId(r));
+  sandbox.inject();
   live = true;
   setSync("ok", "Aggiornato");
   aggiornaVista();

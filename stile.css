@@ -254,3 +254,8 @@ main .wrap > *, .sheet > *, .reprow > *, .set-sec > * { min-width: 0; }
 .news-item { border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; background: var(--bg); }
 .news-item h3 { margin: 0 0 4px; font-size: .95rem; color: var(--accent); }
 .news-item ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+
+.prova-avviso { border: 2px dashed #b45309; background: #fdf1d6; color: #6b3a07; border-radius: 12px; padding: 10px 12px; font-size: .92rem; }
+.card.prova { outline: 2px dashed #b45309; outline-offset: -2px; }
+.badge.provab { background: #b45309; color: #fff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .prova-avviso { background: #3a2a12; color: #f5d9a8; } }

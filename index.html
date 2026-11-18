@@ -91,6 +91,7 @@
       <button type="button" id="t-preventivo" aria-pressed="false">Preventivo</button>
     </div>
     <div class="field"><label for="f-operatore">Operatore che inserisce</label><select id="f-operatore"></select><span class="hint" id="opHint"></span></div>
+    <div class="prova-avviso" id="provaAvviso" hidden><b>Modalità PROVA</b>: questo ordine non va nel database. Resta solo su questo dispositivo e sparisce quando chiudi l'app. Il messaggio WhatsApp invece parte davvero: mandalo solo al numero di prova.</div>
 
     <h3>Cliente <span class="hint" id="cliState">nuovo cliente</span></h3>
     <div class="field">
@@ -292,6 +293,7 @@
       <div class="field"><label for="k-email">Email (facoltativa)</label><input id="k-email" type="email" inputmode="email"></div>
     </div>
     <div class="field"><label for="k-note">Note sul cliente</label><textarea id="k-note" placeholder="Allergie, preferenze, cliente abituale…"></textarea></div>
+    <label class="toggle left" id="k-provaBox" hidden><input type="checkbox" id="k-prova"> Cliente di prova: è l'unico che si può scegliere con l'operatore "Prova"</label>
     <div class="err" id="cliErr" hidden></div>
     <div class="actions">
       <button type="button" class="btn danger" id="cliDel" hidden>Archivia</button>

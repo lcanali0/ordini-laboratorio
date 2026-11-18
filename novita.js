@@ -5,6 +5,7 @@ const NOVITA = [
     id: "2026-11-18",
     titolo: "18 novembre 2026",
     punti: [
+      "Modalità prova: nel modulo ordine scegliete come operatore \"Prova\" per esercitarvi. Il cliente è già pronto, l'ordine NON va nel database e sparisce quando chiudete l'app. Il messaggio WhatsApp invece parte davvero, al numero di prova.",
       "Privacy: in fondo al messaggio di conferma per il cliente (WhatsApp o email) c'è ora il link all'informativa privacy. Non dovete fare niente: si aggiunge da solo.",
     ],
   },
