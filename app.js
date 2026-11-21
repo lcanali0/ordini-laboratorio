@@ -1,3 +1,6 @@
+// Cognome del cliente obbligatorio? true = sì, false = facoltativo (tolto per ora su richiesta di Rosa, 21/11/2026).
+const COGNOME_OBBLIGATORIO = false;
+for (const id of ["f-cognome", "k-cognome"]) { const l = document.querySelector(`label[for="${id}"]`); if (l) l.textContent = COGNOME_OBBLIGATORIO ? "Cognome *" : "Cognome (facoltativo)"; }
 // reparti di partenza: quelli veri si cambiano da Impostazioni
 const REPARTI_BASE = [
   { id: "torte", nome: "Torte", colore: "#b8325a", unita: ["torte", "persone", "kg"] },
@@ -365,7 +368,7 @@ async function saveCliente(ev) {
   ev.preventDefault();
   const err = m => { $("cliErr").textContent = m; $("cliErr").hidden = false; };
   const d = { nome: $("k-nome").value.trim(), cognome: $("k-cognome").value.trim(), telefono: $("k-telefono").value.trim(), email: $("k-email").value.trim(), note: $("k-note").value.trim(), aggiornato: new Date().toISOString() };
-  const manca = [!d.nome && "il nome", !d.cognome && "il cognome", digits(d.telefono).length < 6 && "il telefono"].filter(Boolean);
+  const manca = [!d.nome && "il nome", COGNOME_OBBLIGATORIO && !d.cognome && "il cognome", digits(d.telefono).length < 6 && "il telefono"].filter(Boolean);
   if (manca.length) return err("Manca " + manca.join(", ") + " del cliente. L'email invece è facoltativa.");
   if (!live) return err("Non collegato: non posso salvare adesso.");
   if (sonoAdmin) d.prova = $("k-prova").checked;
@@ -793,7 +796,7 @@ async function saveForm(ev) {
   if (arts.some(a => !a.prodotto)) missing.push("il nome di ogni prodotto");
   if (!$("f-operatore").value) missing.push("l'operatore (sceglilo dall'elenco)");
   if (!$("f-nome").value.trim()) missing.push("il nome del cliente");
-  if (!$("f-cognome").value.trim()) missing.push("il cognome del cliente");
+  if (COGNOME_OBBLIGATORIO && !$("f-cognome").value.trim()) missing.push("il cognome del cliente");
   if (digits($("f-telefono").value).length < 6) missing.push("il telefono del cliente");
   if (!$("f-data").value) missing.push("il giorno");
   if (!$("f-ora").value) missing.push("l'ora");

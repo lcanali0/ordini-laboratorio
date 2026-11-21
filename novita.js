@@ -2,6 +2,13 @@
 // (id nuovo = data): all'apertura le ragazze vedono l'avviso una volta sola.
 const NOVITA = [
   {
+    id: "2026-11-21",
+    titolo: "21 novembre 2026",
+    punti: [
+      "Il cognome del cliente per ora è facoltativo: bastano nome e telefono.",
+    ],
+  },
+  {
     id: "2026-11-18",
     titolo: "18 novembre 2026",
     punti: [
