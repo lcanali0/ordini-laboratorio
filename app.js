@@ -1566,6 +1566,7 @@ function erroreAccesso(e) {
   if (/password/i.test(m) && /6|8|short|weak/i.test(m)) return "La password è troppo corta: usane una di almeno 8 caratteri.";
   if (/not confirmed/i.test(m)) return "Devi prima confermare l'email: controlla la posta.";
   if (/rate|too many/i.test(m)) return "Troppi tentativi: aspetta qualche minuto.";
+  if (/database error|EMAIL_NON_AMMESSA/i.test(m)) return "Questa email non è nell'elenco: chiedi al titolare di aggiungerla, poi riprova.";
   return "Non riesco a collegarmi. Controlla la connessione e riprova.";
 }
 $("loginForm").onsubmit = async ev => {
